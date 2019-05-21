@@ -22,7 +22,7 @@ func main() {
 	router.HandleFunc("/q/{id}", PutQ).Methods("PUT")
 	//router.HandleFunc("/q/{id}", DeletePerson).Methods("DELETE")
 
-	log.Fatal(http.ListenAndServe(os.Args[1], router))
+	log.Fatal(http.ListenAndServe(":"+os.Args[1], router))
 }
 
 func GetToken(w http.ResponseWriter, r *http.Request) {
