@@ -1,1 +1,1 @@
-web: bin/main $PORT
+web: main $PORT
