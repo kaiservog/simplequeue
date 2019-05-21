@@ -1,1 +1,1 @@
-web: simplequeue-badhunter $PORT
+web: simplequeue $PORT
