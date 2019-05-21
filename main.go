@@ -15,6 +15,7 @@ func main() {
 	qq = make(map[string]*Q)
 
 	router := mux.NewRouter()
+	router.HandleFunc("/token", GetToken).Methods("GET")
 	router.HandleFunc("/q/{id}", CreateQ).Methods("POST")
 	router.HandleFunc("/q/{id}", GetElm).Methods("GET")
 	router.HandleFunc("/q/{id}", PutQ).Methods("PUT")
@@ -23,7 +24,34 @@ func main() {
 	log.Fatal(http.ListenAndServe(":8080", router))
 }
 
+func GetToken(w http.ResponseWriter, r *http.Request) {
+	pwd := r.Header.Get("Authorization")
+	ok := login(pwd)
+	if !ok {
+		w.WriteHeader(http.StatusUnauthorized)
+		io.WriteString(w, "login failure")
+		return
+	}
+
+	token, err := createToken()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		io.WriteString(w, err.Error())
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	io.WriteString(w, token)
+}
+
 func CreateQ(w http.ResponseWriter, r *http.Request) {
+	token := r.Header.Get("Authorization")
+	err := validade(token)
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	params := mux.Vars(r)
 	q := newQ(10)
 
@@ -32,6 +60,13 @@ func CreateQ(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetElm(w http.ResponseWriter, r *http.Request) {
+	token := r.Header.Get("Authorization")
+	err := validade(token)
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	params := mux.Vars(r)
 	q := qq[params["id"]]
 	if q == nil {
@@ -58,6 +93,13 @@ func GetElm(w http.ResponseWriter, r *http.Request) {
 }
 
 func PutQ(w http.ResponseWriter, r *http.Request) {
+	token := r.Header.Get("Authorization")
+	err := validade(token)
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	params := mux.Vars(r)
 	q := qq[params["id"]]
 

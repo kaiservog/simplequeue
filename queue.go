@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"sync"
 )
 
@@ -44,7 +43,6 @@ func incrementOrReset(idx, max int64) int64 {
 }
 
 func (q *Q) put(elm string) {
-	fmt.Println("oops")
 	q.ee[q.idxPut] = elm
 
 	if q.idxPut == q.idxRead {
