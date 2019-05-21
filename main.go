@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/mux"
 )
@@ -21,7 +22,7 @@ func main() {
 	router.HandleFunc("/q/{id}", PutQ).Methods("PUT")
 	//router.HandleFunc("/q/{id}", DeletePerson).Methods("DELETE")
 
-	log.Fatal(http.ListenAndServe(":8080", router))
+	log.Fatal(http.ListenAndServe(os.Getenv("SQ-PORT"), router))
 }
 
 func GetToken(w http.ResponseWriter, r *http.Request) {
@@ -33,7 +34,7 @@ func GetToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := createToken()
+	token, err := createToken() //must register token in a db for blacklist
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w, err.Error())

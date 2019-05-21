@@ -15,7 +15,8 @@ func createToken() (string, error) {
 	secret := os.Getenv("SQ-SECRET")
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"time": time.Now().Unix()})
+		"time": time.Now().Unix(),
+		"name": "John Doe"}) //get name from url?
 
 	tokenString, err := token.SignedString([]byte(secret))
 	if err != nil {
