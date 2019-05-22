@@ -13,6 +13,7 @@ var processing map[string]*sync.Mutex
 var helper *redisHelper
 
 func main() {
+	log.Println("starting...")
 	processing = make(map[string]*sync.Mutex)
 
 	address := "192.168.1.109" //TODO
@@ -20,7 +21,7 @@ func main() {
 	port := "6379"
 	h, err := newRedisHelper(address+":"+port, password)
 	helper = h
-
+	log.Println("redis up")
 	if err != nil {
 		panic(err)
 	}
@@ -32,5 +33,6 @@ func main() {
 	router.HandleFunc("/q/{name}", GetMessage).Methods("GET")
 	router.HandleFunc("/q/{name}", PutMessage).Methods("PUT")
 
+	log.Println("mux up")
 	log.Fatal(http.ListenAndServe(":"+os.Args[1], router))
 }

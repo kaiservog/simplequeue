@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"io"
+	"log"
 	"net/http"
 	"sync"
 
@@ -10,6 +11,7 @@ import (
 )
 
 func GetToken(w http.ResponseWriter, r *http.Request) {
+	log.Println("request get token")
 	pwd := r.Header.Get("Authorization")
 	ok := login(pwd)
 	if !ok {
@@ -22,6 +24,7 @@ func GetToken(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w, err.Error())
+		log.Println(err)
 		return
 	}
 
@@ -29,6 +32,7 @@ func GetToken(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, token)
 }
 func DeleteQ(w http.ResponseWriter, r *http.Request) {
+	log.Println("request delete q")
 	token := r.Header.Get("Authorization")
 	err := validade(token)
 	if err != nil {
@@ -47,12 +51,14 @@ func DeleteQ(w http.ResponseWriter, r *http.Request) {
 		} else {
 			w.WriteHeader(http.StatusInternalServerError)
 		}
+		log.Println(err)
 		io.WriteString(w, err.Error())
 		return
 	}
 }
 
 func CreateQ(w http.ResponseWriter, r *http.Request) {
+	log.Println("request create q")
 	token := r.Header.Get("Authorization")
 	err := validade(token)
 	if err != nil {
@@ -67,10 +73,12 @@ func CreateQ(w http.ResponseWriter, r *http.Request) {
 	if err != nil && err.Error() == "queue exists, DELETE it" {
 		w.WriteHeader(http.StatusConflict)
 		io.WriteString(w, err.Error())
+		log.Println(err)
 		return
 	} else if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w, err.Error())
+		log.Println(err)
 		return
 	}
 
@@ -93,6 +101,7 @@ func doQueueLock(token, name string) *sync.Mutex {
 }
 
 func GetMessage(w http.ResponseWriter, r *http.Request) {
+	log.Println("request get message")
 	token := r.Header.Get("Authorization")
 	err := validade(token)
 	if err != nil {
@@ -115,10 +124,12 @@ func GetMessage(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusNoContent)
 		} else if err.Error() == "no queue" {
 			w.WriteHeader(http.StatusNotFound)
+			io.WriteString(w, err.Error())
 		} else {
 			w.WriteHeader(http.StatusInternalServerError)
 			io.WriteString(w, err.Error())
 		}
+		log.Println(err)
 		return
 	}
 
@@ -126,6 +137,7 @@ func GetMessage(w http.ResponseWriter, r *http.Request) {
 }
 
 func PutMessage(w http.ResponseWriter, r *http.Request) {
+	log.Println("request put message")
 	token := r.Header.Get("Authorization")
 	err := validade(token)
 	if err != nil {
@@ -153,6 +165,7 @@ func PutMessage(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
 			io.WriteString(w, err.Error())
 		}
+		log.Println(err)
 		return
 	}
 

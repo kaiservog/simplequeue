@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"strconv"
 
 	"github.com/go-redis/redis"
@@ -81,13 +80,12 @@ func (r *redisHelper) createQ(depth int, id string) error {
 		return errors.New("queue exists, DELETE it")
 	}
 
-	if err != nil {
+	if err != nil && err.Error() != "no queue" {
 		return err
 	}
 
 	d := strconv.Itoa(depth)
 
-	fmt.Println("setting", id+_depth, d)
 	err = r.client.Set(id+_depth, d, 0).Err()
 	if err != nil {
 		return err
@@ -156,7 +154,6 @@ func (r *redisHelper) deleteMessage(idx int, id string) error {
 func (r *redisHelper) putMessage(idx int, message, id string) error {
 	idxStr := strconv.Itoa(idx)
 	key := id + _message + idxStr
-	fmt.Println(key, message)
 	err := r.client.Set(key, message, 0).Err()
 
 	return err
