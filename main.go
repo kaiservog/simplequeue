@@ -28,9 +28,9 @@ func main() {
 	router := mux.NewRouter()
 	router.HandleFunc("/token", GetToken).Methods("GET")
 	router.HandleFunc("/q/{name}", CreateQ).Methods("POST")
+	router.HandleFunc("/q/{name}", DeleteQ).Methods("DELETE")
 	router.HandleFunc("/q/{name}", GetMessage).Methods("GET")
 	router.HandleFunc("/q/{name}", PutMessage).Methods("PUT")
-	//router.HandleFunc("/q/{id}", DeletePerson).Methods("DELETE")
 
 	log.Fatal(http.ListenAndServe(":"+os.Args[1], router))
 }

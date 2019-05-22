@@ -102,6 +102,27 @@ func (r *redisHelper) createQ(depth int, id string) error {
 	return err
 }
 
+func (r *redisHelper) deleteQ(id string) error {
+	q, err := r.queue(id)
+
+	if q == nil {
+		return errors.New("no queue")
+	}
+
+	_, err = r.client.Del(id + _depth).Result()
+	if err != nil {
+		return err
+	}
+
+	_, err = r.client.Del(id + _idxi).Result()
+	if err != nil {
+		return err
+	}
+
+	_, err = r.client.Del(id + _idxo).Result()
+	return err
+}
+
 func (r *redisHelper) idxI(id string) (int, error) {
 	return r.client.Get(id + _idxi).Int()
 }

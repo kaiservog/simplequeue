@@ -28,6 +28,29 @@ func GetToken(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	io.WriteString(w, token)
 }
+func DeleteQ(w http.ResponseWriter, r *http.Request) {
+	token := r.Header.Get("Authorization")
+	err := validade(token)
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	params := mux.Vars(r)
+	id := token + "." + params["name"]
+
+	err = helper.deleteQ(id)
+
+	if err != nil {
+		if err.Error() == "no queue" {
+			w.WriteHeader(http.StatusNotFound)
+		} else {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+		io.WriteString(w, err.Error())
+		return
+	}
+}
 
 func CreateQ(w http.ResponseWriter, r *http.Request) {
 	token := r.Header.Get("Authorization")
@@ -42,7 +65,13 @@ func CreateQ(w http.ResponseWriter, r *http.Request) {
 
 	err = helper.createQ(10, id)
 	if err != nil && err.Error() == "queue exists, DELETE it" {
-
+		w.WriteHeader(http.StatusConflict)
+		io.WriteString(w, err.Error())
+		return
+	} else if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		io.WriteString(w, err.Error())
+		return
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -89,13 +118,11 @@ func GetMessage(w http.ResponseWriter, r *http.Request) {
 		} else {
 			w.WriteHeader(http.StatusInternalServerError)
 			io.WriteString(w, err.Error())
-			io.WriteString(w, err.Error())
 		}
 		return
 	}
 
 	io.WriteString(w, e)
-	return
 }
 
 func PutMessage(w http.ResponseWriter, r *http.Request) {

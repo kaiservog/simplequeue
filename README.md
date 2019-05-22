@@ -9,3 +9,4 @@
 * must register token in a db for blacklist
 * inform queue size
 * config redis heroku style
+* Authorization with ':'

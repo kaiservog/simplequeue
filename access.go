@@ -14,4 +14,5 @@ type repository interface {
 	putMessage(idx int, message, id string) error
 	updateIdx(idxI, idxO int, id string) error
 	createQ(depth int, id string) error
+	deleteQ(id string) error
 }
