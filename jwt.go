@@ -13,7 +13,7 @@ import (
 
 func createToken() (string, error) {
 	secret := os.Getenv("SQ-SECRET")
-
+	fmt.Println("s", secret) //TODO
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"time": time.Now().Unix(),
 		"name": "John Doe"}) //get name from url?
@@ -28,6 +28,7 @@ func createToken() (string, error) {
 
 func login(p string) bool {
 	ok := os.Getenv("SHA1-PWD") //"GuOqAxqkaL7E2Hr1LUb8PjLX7dE=" change to list of pwds implement ':'
+	fmt.Println("sha1", ok)     //TODO
 	hasher := sha1.New()
 	hasher.Write([]byte(p))
 
