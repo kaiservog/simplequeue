@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	redisURL = "REDIS_URL"
+	redisURL = "REDISTOGO_URL"
 )
 
 var processing map[string]*sync.Mutex
