@@ -137,6 +137,16 @@ func PutMessage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(r.Body)
+	c := buf.String()
+
+	if len(c) > 256 {
+		w.WriteHeader(http.StatusBadRequest)
+		io.WriteString(w, "max message size is 256")
+
+	}
+
 	h := tokenToHash(token)
 	params := mux.Vars(r)
 	name := params["name"]
@@ -145,10 +155,6 @@ func PutMessage(w http.ResponseWriter, r *http.Request) {
 	log.Println("request put message", id)
 	qmux := doQueueLock(id, name)
 	defer qmux.Unlock()
-
-	buf := new(bytes.Buffer)
-	buf.ReadFrom(r.Body)
-	c := buf.String()
 
 	alg := newCircularAlg(helper)
 	err = alg.put(c, id)
