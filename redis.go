@@ -11,19 +11,22 @@ type redisHelper struct {
 	client *redis.Client
 }
 
-const _idxi = ".idxi"
-const _idxo = ".idxo"
-const _message = ".m."
-const _depth = ".d"
+const (
+	_idxi    = ".idxi"
+	_idxo    = ".idxo"
+	_message = ".m."
+	_depth   = ".d"
+)
 
-func newRedisHelper(address, password string) (*redisHelper, error) {
-	client := redis.NewClient(&redis.Options{
-		Addr:     address,
-		Password: password,
-		DB:       0,
-	})
+func newRedisHelper(url string) (*redisHelper, error) {
+	opt, err := redis.ParseURL(url)
 
-	_, err := client.Ping().Result()
+	if err != nil {
+		panic(err)
+	}
+
+	client := redis.NewClient(opt)
+	_, err = client.Ping().Result()
 
 	if err != nil {
 		return nil, err

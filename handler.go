@@ -2,6 +2,8 @@ package main
 
 import (
 	"bytes"
+	"crypto/sha1"
+	"encoding/base64"
 	"io"
 	"log"
 	"net/http"
@@ -31,17 +33,20 @@ func GetToken(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	io.WriteString(w, token)
 }
+
 func DeleteQ(w http.ResponseWriter, r *http.Request) {
-	log.Println("request delete q")
 	token := r.Header.Get("Authorization")
 	err := validade(token)
+	h := tokenToHash(token)
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
+		log.Println("Authorization fail")
 		return
 	}
 
 	params := mux.Vars(r)
-	id := token + "." + params["name"]
+	id := h + "." + params["name"]
+	log.Println("request delete q", id)
 
 	err = helper.deleteQ(id)
 
@@ -58,7 +63,6 @@ func DeleteQ(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateQ(w http.ResponseWriter, r *http.Request) {
-	log.Println("request create q")
 	token := r.Header.Get("Authorization")
 	err := validade(token)
 	if err != nil {
@@ -66,8 +70,10 @@ func CreateQ(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	h := tokenToHash(token)
 	params := mux.Vars(r)
-	id := token + "." + params["name"]
+	id := h + "." + params["name"]
+	log.Println("request create q", id)
 
 	err = helper.createQ(10, id)
 	if err != nil && err.Error() == "queue exists, DELETE it" {
@@ -85,35 +91,22 @@ func CreateQ(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func doQueueLock(token, name string) *sync.Mutex {
-	qmux := processing[token+"."+name]
-
-	if qmux == nil {
-		qmux = &sync.Mutex{}
-		qmux.Lock()
-		processing[token+"."+name] = qmux
-	} else {
-		qmux.Lock()
-	}
-
-	return qmux
-
-}
-
 func GetMessage(w http.ResponseWriter, r *http.Request) {
-	log.Println("request get message")
 	token := r.Header.Get("Authorization")
 	err := validade(token)
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
+
+	h := tokenToHash(token)
 	params := mux.Vars(r)
 	name := params["name"]
-	qmux := doQueueLock(token, name)
-	defer qmux.Unlock()
 
-	id := token + "." + name
+	id := h + "." + name
+	log.Println("request get message", id)
+	qmux := doQueueLock(id, name)
+	defer qmux.Unlock()
 
 	alg := newCircularAlg(helper)
 
@@ -137,7 +130,6 @@ func GetMessage(w http.ResponseWriter, r *http.Request) {
 }
 
 func PutMessage(w http.ResponseWriter, r *http.Request) {
-	log.Println("request put message")
 	token := r.Header.Get("Authorization")
 	err := validade(token)
 	if err != nil {
@@ -145,10 +137,13 @@ func PutMessage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	h := tokenToHash(token)
 	params := mux.Vars(r)
 	name := params["name"]
-	id := token + "." + name
-	qmux := doQueueLock(token, name)
+	id := h + "." + name
+
+	log.Println("request put message", id)
+	qmux := doQueueLock(id, name)
 	defer qmux.Unlock()
 
 	buf := new(bytes.Buffer)
@@ -170,4 +165,26 @@ func PutMessage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
+}
+
+func tokenToHash(token string) string {
+	hasher := sha1.New()
+	hasher.Write([]byte(token))
+	hash := base64.URLEncoding.EncodeToString(hasher.Sum(nil))
+
+	return hash[:len(hash)-1]
+}
+
+func doQueueLock(token, name string) *sync.Mutex {
+	qmux := processing[token+"."+name]
+
+	if qmux == nil {
+		qmux = &sync.Mutex{}
+		qmux.Lock()
+		processing[token+"."+name] = qmux
+	} else {
+		qmux.Lock()
+	}
+
+	return qmux
 }

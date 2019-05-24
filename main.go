@@ -9,22 +9,23 @@ import (
 	"github.com/gorilla/mux"
 )
 
+const (
+	redisURL = "REDIS_URL"
+)
+
 var processing map[string]*sync.Mutex
 var helper *redisHelper
 
 func main() {
-	log.Println("starting...")
+	log.Println("Starting...")
 	processing = make(map[string]*sync.Mutex)
-
-	address := "192.168.1.109" //TODO
-	password := ""             //TODO
-	port := "6379"
-	h, err := newRedisHelper(address+":"+port, password)
+	h, err := newRedisHelper(os.Getenv(redisURL))
 	helper = h
-	log.Println("redis up")
 	if err != nil {
 		panic(err)
 	}
+
+	log.Println("Redis up")
 
 	router := mux.NewRouter()
 	router.HandleFunc("/token", GetToken).Methods("GET")
@@ -33,6 +34,6 @@ func main() {
 	router.HandleFunc("/q/{name}", GetMessage).Methods("GET")
 	router.HandleFunc("/q/{name}", PutMessage).Methods("PUT")
 
-	log.Println("mux up")
+	log.Println("Mux up")
 	log.Fatal(http.ListenAndServe(":"+os.Args[1], router))
 }
